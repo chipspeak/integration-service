@@ -120,7 +120,10 @@ func RegisterIntegrationResponse(duration time.Duration) {
 	IntegrationSvcResponseSeconds.Observe(duration.Seconds())
 }
 
-// this function is called in both component and build adapters. need to investigate if it can safely be removed from these locations as it only appears to register the broken metric.
+/*
+This function is called in both component and build adapters.
+I need to investigate if it can safely be removed from these locations as it only appears to register the broken metric.
+*/
 func RegisterNewSnapshot() {
 	// SnapshotConcurrentTotal.Inc()
 }
