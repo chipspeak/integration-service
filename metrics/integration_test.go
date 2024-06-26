@@ -33,7 +33,7 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 	BeforeAll(func() {
 		metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedStaticEnvSeconds)
 		metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedSeconds)
-		metrics.Registry.Unregister(SnapshotConcurrentTotal)
+		// metrics.Registry.Unregister(SnapshotConcurrentTotal)
 		metrics.Registry.Unregister(SnapshotDurationSeconds)
 	})
 
@@ -78,34 +78,38 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 					Buckets: []float64{1, 5, 10, 30},
 				},
 			)
-			SnapshotConcurrentTotal = prometheus.NewGauge(
-				prometheus.GaugeOpts{
-					Name: "integration_svc_snapshot_attempt_concurrent_requests",
-					Help: "Total number of concurrent snapshot attempts",
-				},
-			)
+			/*
+				SnapshotConcurrentTotal = prometheus.NewGauge(
+					prometheus.GaugeOpts{
+						Name: "integration_svc_snapshot_attempt_concurrent_requests",
+						Help: "Total number of concurrent snapshot attempts",
+					},
+				)
+			*/
 		})
 
 		AfterAll(func() {
 			metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedStaticEnvSeconds)
 			metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedSeconds)
-			metrics.Registry.Unregister(SnapshotConcurrentTotal)
+			// metrics.Registry.Unregister(SnapshotConcurrentTotal)
 		})
 
 		// Input seconds for duration of operations less or equal to the following buckets of 1, 5, 10 and 30 seconds
 		inputSeconds := []float64{1, 3, 8, 15}
 		elapsedSeconds := 0.0
 
-		It("increments the 'integration_svc_snapshot_attempt_concurrent_requests'.", func() {
-			creationTime := metav1.Time{}
-			for _, seconds := range inputSeconds {
-				RegisterNewSnapshot()
-				startTime := metav1.NewTime(creationTime.Add(time.Second * time.Duration(seconds)))
-				elapsedSeconds += seconds
-				RegisterPipelineRunStarted(creationTime, &startTime)
-			}
-			Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(float64(len(inputSeconds))))
-		})
+		/*
+			It("increments the 'integration_svc_snapshot_attempt_concurrent_requests'.", func() {
+				creationTime := metav1.Time{}
+				for _, seconds := range inputSeconds {
+					RegisterNewSnapshot()
+					startTime := metav1.NewTime(creationTime.Add(time.Second * time.Duration(seconds)))
+					elapsedSeconds += seconds
+					RegisterPipelineRunStarted(creationTime, &startTime)
+				}
+				Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(float64(len(inputSeconds))))
+			})
+		*/
 		It("registers a new observation for 'integration_svc_snapshot_created_to_pipelinerun_with_static_env_started_seconds' with the elapsed time from the moment"+
 			"the snapshot is created to first integration pipelineRun is started.", func() {
 			// Defined buckets for SnapshotCreatedToPipelineRunStartedSeconds
@@ -143,12 +147,14 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 				[]string{"type", "reason"},
 			)
 
-			SnapshotConcurrentTotal = prometheus.NewGauge(
-				prometheus.GaugeOpts{
-					Name: "integration_svc_snapshot_attempt_concurrent_requests",
-					Help: "Total number of concurrent snapshot attempts",
-				},
-			)
+			/*
+				SnapshotConcurrentTotal = prometheus.NewGauge(
+					prometheus.GaugeOpts{
+						Name: "integration_svc_snapshot_attempt_concurrent_requests",
+						Help: "Total number of concurrent snapshot attempts",
+					},
+				)
+			*/
 			SnapshotTotal = prometheus.NewCounterVec(
 				prometheus.CounterOpts{
 					Name: "integration_svc_snapshot_attempt_total",
@@ -164,7 +170,7 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 			metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedStaticEnvSeconds)
 			metrics.Registry.Unregister(SnapshotCreatedToPipelineRunStartedSeconds)
 			metrics.Registry.Unregister(SnapshotDurationSeconds)
-			metrics.Registry.Unregister(SnapshotConcurrentTotal)
+			// metrics.Registry.Unregister(SnapshotConcurrentTotal)
 			metrics.Registry.Unregister(SnapshotTotal)
 		})
 
@@ -173,16 +179,18 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 		elapsedSeconds := 0.0
 		labels := fmt.Sprintf(`reason="%s", type="%s",`, "passed", "AppStudioIntegrationStatus")
 
-		It("increments 'SnapshotConcurrentTotal' so we can decrement it to a non-negative number in the next test", func() {
-			creationTime := metav1.Time{}
-			for _, seconds := range inputSeconds {
-				RegisterNewSnapshot()
-				startTime := metav1.NewTime(creationTime.Add(time.Second * time.Duration(seconds)))
-				RegisterPipelineRunStarted(creationTime, &startTime)
+		/*
+			It("increments 'SnapshotConcurrentTotal' so we can decrement it to a non-negative number in the next test", func() {
+				creationTime := metav1.Time{}
+				for _, seconds := range inputSeconds {
+					RegisterNewSnapshot()
+					startTime := metav1.NewTime(creationTime.Add(time.Second * time.Duration(seconds)))
+					RegisterPipelineRunStarted(creationTime, &startTime)
 
-			}
-			Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(float64(len(inputSeconds))))
-		})
+				}
+				Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(float64(len(inputSeconds))))
+			})
+		*/
 
 		It("increments 'SnapshotTotal' and decrements 'SnapshotConcurrentTotal'", func() {
 			startTime := metav1.Time{Time: time.Now()}
@@ -193,7 +201,7 @@ var _ = Describe("Metrics Integration", Ordered, func() {
 				RegisterCompletedSnapshot("AppStudioIntegrationStatus", "passed", startTime, &completionTime)
 			}
 			readerData := createCounterReader(SnapshotTotalHeader, labels, true, len(inputSeconds))
-			Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(0.0))
+			// Expect(testutil.ToFloat64(SnapshotConcurrentTotal)).To(Equal(0.0))
 			Expect(testutil.CollectAndCompare(SnapshotTotal, strings.NewReader(readerData))).To(Succeed())
 		})
 

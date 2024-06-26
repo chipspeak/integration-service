@@ -57,12 +57,14 @@ var (
 		},
 	)
 
-	SnapshotConcurrentTotal = prometheus.NewGauge(
-		prometheus.GaugeOpts{
-			Name: "integration_svc_snapshot_attempt_concurrent_requests",
-			Help: "Total number of concurrent snapshot attempts",
-		},
-	)
+	/*
+		SnapshotConcurrentTotal = prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "integration_svc_snapshot_attempt_concurrent_requests",
+				Help: "Total number of concurrent snapshot attempts",
+			},
+		)
+	*/
 
 	SnapshotDurationSeconds = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -96,13 +98,13 @@ func RegisterCompletedSnapshot(conditiontype, reason string, startTime metav1.Ti
 		"reason": reason,
 	}
 
-	SnapshotConcurrentTotal.Sub(1)
+	// SnapshotConcurrentTotal.Sub(1)
 	SnapshotDurationSeconds.With(labels).Observe(completionTime.Sub(startTime.Time).Seconds())
 	SnapshotTotal.With(labels).Inc()
 }
 
 func RegisterInvalidSnapshot(conditiontype, reason string) {
-	SnapshotConcurrentTotal.Dec()
+	// SnapshotConcurrentTotal.Dec()
 	SnapshotTotal.With(prometheus.Labels{
 		"type":   conditiontype,
 		"reason": reason,
@@ -118,8 +120,9 @@ func RegisterIntegrationResponse(duration time.Duration) {
 	IntegrationSvcResponseSeconds.Observe(duration.Seconds())
 }
 
+// this function is called in both component and build adapters. need to investigate if it can safely be removed from these locations as it only appears to register the broken metric.
 func RegisterNewSnapshot() {
-	SnapshotConcurrentTotal.Inc()
+	// SnapshotConcurrentTotal.Inc()
 }
 
 func RegisterNewIntegrationPipelineRun() {
@@ -137,7 +140,7 @@ func init() {
 		SnapshotCreatedToPipelineRunStartedSeconds,
 		IntegrationSvcResponseSeconds,
 		IntegrationPipelineRunTotal,
-		SnapshotConcurrentTotal,
+		// SnapshotConcurrentTotal,
 		SnapshotDurationSeconds,
 		SnapshotTotal,
 		ReleaseLatencySeconds,
